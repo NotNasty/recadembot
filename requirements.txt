@@ -13,7 +13,6 @@ pip==21.0.1
 pytz==2021.1
 setuptools==52.0.0
 six==1.15.0
-tornado=6.1
 typing-extensions==3.10.0.0
 tzlocal==2.1
 wheel==0.36.2

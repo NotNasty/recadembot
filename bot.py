@@ -1,5 +1,6 @@
 import logging
 import config
+import sqlite3
 
 from aiogram import Bot, Dispatcher, executor, types
 

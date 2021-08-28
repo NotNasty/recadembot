@@ -1,6 +1,5 @@
 import logging
 import config
-import sqlite3
 import comands.adduser_cmd
 
 from aiogram import Bot, Dispatcher, executor, types
@@ -22,7 +21,7 @@ async def cmd_red_albums(message: types.Message):
 
 
 # add user command
-@dp.message_handler(commands=["adduser"])
+@dp.message_handler(commands=["start"])
 async def cmd_adduser(message: types.Message):
     await comands.adduser_cmd.adduser(bot, message)
 

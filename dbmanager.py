@@ -18,7 +18,21 @@ def add_user(users_id, username):
     try:
         cursor.execute(f"INSERT INTO users(id, username) VALUES({users_id}, '{username}');")
     except psycopg2.errors.UniqueViolation as ex:
-        return 'Такой пользователь уже добаввлен в комитет'
+        return 'Такой пользователь уже добавлен в комитет'
+    except Exception as ex:
+        return ex
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return "Вы приняты в комитет"
+
+
+def get_all_admins():
+    conn = db_connect()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"SELECT * FROM users WHERE is_admin=true;")
+        return cursor.fetchall()
     except Exception as ex:
         return ex
     conn.commit()

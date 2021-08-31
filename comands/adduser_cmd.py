@@ -5,8 +5,6 @@ from aiogram.utils.callback_data import CallbackData
 from bot import dp, bot
 
 
-users_id = 0
-username = ''
 admins = []
 denied = False
 admin_confirm_callback = CallbackData("admin_confirm", "answer")
@@ -15,9 +13,7 @@ admin_confirm_callback = CallbackData("admin_confirm", "answer")
 # add user command
 # @dp.message_handler(commands=["start"])
 async def cmd_start(message: types.Message):
-    global users_id
     global admins
-    global username
     global denied
     denied = False
     users_id = message.chat.id

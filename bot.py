@@ -21,8 +21,7 @@ async def cmd_red_albums(message: types.Message):
     await message.answer("Red Albums:")
 
 
-users_id = 0
-username = ''
+chat = None
 admins = []
 denied = False
 admin_confirm_callback = CallbackData("admin_confirm", "answer")
@@ -31,13 +30,13 @@ admin_confirm_callback = CallbackData("admin_confirm", "answer")
 # add user command
 @dp.message_handler(commands=["start"])
 async def cmd_start(message: types.Message):
-    global users_id
     global admins
-    global username
     global denied
+    global chat
     denied = False
-    users_id = message.chat.id
-    username = message.chat.username
+    chat = message.chat
+    users_id = chat.id
+    username = chat.username
     admins = dbmanager.get_all_admins()
     if admins:
         await bot.send_message(chat_id=users_id,
@@ -50,19 +49,21 @@ async def cmd_start(message: types.Message):
         markup.add(item_yes, item_no)
 
         for admin in admins:
-            await bot.send_message(chat_id=admin[0], text=f"Юзер @{username} хочет добавится в коммитет.",
+            await bot.send_message(chat_id=admin[0],
+                                   text=f"Юзер @{username}({chat.first_name} {chat.last_name}) хочет вступить в коммитет.",
                                    reply_markup=markup)
     else:
         await add_user(message)
 
 
 async def add_user(message):
-    result = dbmanager.add_user(users_id, username)
+    result = dbmanager.add_user(chat.id, chat.username, chat.first_name, chat.last_name)
 
     if result is not None:
-        await bot.send_message(chat_id=users_id, text=result)
-        if message.chat.id != users_id:
-            await bot.send_message(chat_id=message.chat.id, text=result)
+        await bot.send_message(chat_id=chat.id, text=result)
+        if message.chat.id != chat.id:
+            await bot.send_message(chat_id=message.chat.id,
+                                   text=f"Статус заявки @{chat.username}({chat.first_name} {chat.last_name}) на вступление: " + result)
 
 
 @dp.callback_query_handler(admin_confirm_callback.filter(answer='no'))  # lambda c: c and c.data == 'no')
@@ -72,7 +73,7 @@ async def admins_answer_no(call: CallbackQuery):
     await bot.send_message(chat_id=call.message.chat.id, text='Пользователь не будет добавлен в комитет')
     global denied
     if denied is False:
-        await bot.send_message(chat_id=users_id, text='Админ отклонил вашу заявку на вступление')
+        await bot.send_message(chat_id=chat.id, text='Админ отклонил вашу заявку на вступление')
         denied = True
 
 

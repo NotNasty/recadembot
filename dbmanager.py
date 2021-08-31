@@ -12,11 +12,11 @@ def db_connect():
     return connection
 
 
-def add_user(users_id, username):
+def add_user(users_id, username, first_name, last_name):
     conn = db_connect()
     cursor = conn.cursor()
     try:
-        cursor.execute(f"INSERT INTO users(id, username) VALUES({users_id}, '{username}');")
+        cursor.execute(f"INSERT INTO users(id, username, first_name, last_name) VALUES({users_id}, '{username}', '{first_name}', '{last_name}');")
     except psycopg2.errors.UniqueViolation as ex:
         return 'Такой пользователь уже добавлен в комитет'
     except Exception as ex:
@@ -24,7 +24,7 @@ def add_user(users_id, username):
     conn.commit()
     cursor.close()
     conn.close()
-    return "Вы приняты в комитет"
+    return "Принят(-а) в комитет"
 
 
 def get_all_admins():

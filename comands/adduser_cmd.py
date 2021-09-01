@@ -1,27 +1,30 @@
+from aiogram.dispatcher.filters import Command
 import dbmanager
 from aiogram.types import CallbackQuery
 from aiogram import types
 from aiogram.utils.callback_data import CallbackData
-from bot import dp, bot
+from loader import dp, bot
 
-
+chat = None
 admins = []
 denied = False
 admin_confirm_callback = CallbackData("admin_confirm", "answer")
 
 
 # add user command
-# @dp.message_handler(commands=["start"])
+@dp.message_handler(Command("start"))
 async def cmd_start(message: types.Message):
     global admins
     global denied
+    global chat
     denied = False
-    users_id = message.chat.id
-    username = message.chat.username
+    chat = message.chat
+    users_id = chat.id
+    username = chat.username
     admins = dbmanager.get_all_admins()
-    if admins is not None:
+    if admins:
         await bot.send_message(chat_id=users_id,
-                               text="Подождите, пока админы комитета подтвердяд вашу заявку на вступление...")
+                               text="Подождите, пока админы комитета подтвердят вашу заявку на вступление...")
         markup = types.InlineKeyboardMarkup()
         item_yes = types.InlineKeyboardButton(text='Добавить в комитет', callback_data=admin_confirm_callback.new(
             answer='yes'))
@@ -30,33 +33,35 @@ async def cmd_start(message: types.Message):
         markup.add(item_yes, item_no)
 
         for admin in admins:
-            await bot.send_message(chat_id=admin[0], text=f"Юзер @{username} хочет добавится в коммитет.",
+            await bot.send_message(chat_id=admin[0],
+                                   text=f"Юзер @{username}({chat.first_name} {chat.last_name}) хочет вступить в коммитет.",
                                    reply_markup=markup)
     else:
         await add_user(message)
 
 
 async def add_user(message):
-    result = dbmanager.add_user(users_id, username)
+    result = dbmanager.add_user(chat.id, chat.username, chat.first_name, chat.last_name)
 
     if result is not None:
-        await bot.send_message(chat_id=users_id, text=result)
-        if message.chat.id != users_id:
-            await bot.send_message(chat_id=message.chat.id, text=result)
+        await bot.send_message(chat_id=chat.id, text=result)
+        if message.chat.id != chat.id:
+            await bot.send_message(chat_id=message.chat.id,
+                                   text=f"Статус заявки @{chat.username}({chat.first_name} {chat.last_name}) на вступление: " + result)
 
 
-# @dp.callback_query_handler(admin_confirm_callback.filter(answer='no'))  # lambda c: c and c.data == 'no')
+@dp.callback_query_handler(admin_confirm_callback.filter(answer='no'))  # lambda c: c and c.data == 'no')
 async def admins_answer_no(call: CallbackQuery):
     res = await call.answer(cache_time=600)  # await  bot.answer_callback_query(callback_query_id=call.id)
     remove_admin_by_id(call.message.chat.id)
     await bot.send_message(chat_id=call.message.chat.id, text='Пользователь не будет добавлен в комитет')
     global denied
     if denied is False:
-        await bot.send_message(chat_id=users_id, text='Админ отклонил вашу заявку на вступление')
+        await bot.send_message(chat_id=chat.id, text='Админ отклонил вашу заявку на вступление')
         denied = True
 
 
-#  @dp.callback_query_handler(admin_confirm_callback.filter(answer='yes'))  # lambda c: c and c.data == 'no')
+@dp.callback_query_handler(admin_confirm_callback.filter(answer='yes'))  # lambda c: c and c.data == 'no')
 async def admins_answer_yes(call: CallbackQuery):
     res = await call.answer(cache_time=600)  # await  bot.answer_callback_query(callback_query_id=call.id)
     remove_admin_by_id(call.message.chat.id)

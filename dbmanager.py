@@ -38,3 +38,16 @@ def get_all_admins():
     conn.commit()
     cursor.close()
     conn.close()
+
+
+def get_all_users():
+    conn = db_connect()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"SELECT * FROM users;")
+        return cursor.fetchall()
+    except Exception as ex:
+        return ex
+    conn.commit()
+    cursor.close()
+    conn.close()

@@ -18,7 +18,7 @@ def add_user(users_id, username, first_name, last_name):
     try:
         cursor.execute(f"INSERT INTO users(id, username, first_name, last_name) VALUES({users_id}, '{username}', '{first_name}', '{last_name}');")
     except psycopg2.errors.UniqueViolation as ex:
-        return 'Такой пользователь уже добавлен в комитет'
+        return 'Такой пользователь уже был добавлен в комитет'
     except Exception as ex:
         return ex
     conn.commit()
@@ -46,6 +46,19 @@ def get_all_users():
     try:
         cursor.execute(f"SELECT * FROM users;")
         return cursor.fetchall()
+    except Exception as ex:
+        return ex
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+def delete_user(user_id):
+    conn = db_connect()
+    cursor = conn.cursor()
+    try:
+        res = cursor.execute(f"DELETE FROM users WHERE id ={user_id};")
+        return cursor.fetchone()
     except Exception as ex:
         return ex
     conn.commit()

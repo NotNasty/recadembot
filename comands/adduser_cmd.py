@@ -52,30 +52,35 @@ async def add_user(message):
 
 @dp.callback_query_handler(admin_confirm_callback.filter(answer='no'))  # lambda c: c and c.data == 'no')
 async def admins_answer_no(call: CallbackQuery):
-    res = await call.answer(cache_time=600)  # await  bot.answer_callback_query(callback_query_id=call.id)
-    remove_admin_by_id(call.message.chat.id)
-    await bot.send_message(chat_id=call.message.chat.id, text='Пользователь не будет добавлен в комитет')
-    global denied
-    if denied is False:
-        await bot.send_message(chat_id=chat.id, text='Админ отклонил вашу заявку на вступление')
-        denied = True
+    await call.answer(cache_time=600)  # await  bot.answer_callback_query(callback_query_id=call.id)
+    if await remove_admin_by_id(call.message.chat.id):
+        await bot.send_message(chat_id=call.message.chat.id, text='Пользователь не будет добавлен в комитет')
+        global denied
+        if denied is False:
+            await bot.send_message(chat_id=chat.id, text='Админ отклонил вашу заявку на вступление')
+            denied = True
 
 
 @dp.callback_query_handler(admin_confirm_callback.filter(answer='yes'))  # lambda c: c and c.data == 'no')
 async def admins_answer_yes(call: CallbackQuery):
-    res = await call.answer(cache_time=600)  # await  bot.answer_callback_query(callback_query_id=call.id)
-    remove_admin_by_id(call.message.chat.id)
-    if not admins:
-        if denied is False:
-            await add_user(call.message)
+    await call.answer(cache_time=600)  # await  bot.answer_callback_query(callback_query_id=call.id)
+    if await remove_admin_by_id(call.message.chat.id):
+        if not admins:
+            if denied is False:
+                await add_user(call.message)
+            else:
+                await bot.send_message(chat_id=call.message.chat.id,
+                                       text='К сожалению, один из администраторов уже отклонил этого участника')
         else:
-            await bot.send_message(chat_id=call.message.chat.id,
-                                   text='К сожалению, один из администраторов уже отклонил этого участника')
-    else:
-        await bot.send_message(chat_id=call.message.chat.id, text='Ждем ответа остальных администраторов')
+            await bot.send_message(chat_id=call.message.chat.id, text='Ждем ответа остальных администраторов')
 
 
-def remove_admin_by_id(admin_id):
+async def remove_admin_by_id(admin_id):
     filtered = list(filter(lambda user: user[0] == admin_id, admins))
     if filtered:
         admins.remove(filtered[0])
+        return True
+    else:
+        await bot.send_message(chat_id=admin_id,
+                               text='Вы уже приняли решение по поводу этого участника, нельзя переголосовать')
+        return False

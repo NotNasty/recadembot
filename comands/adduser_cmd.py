@@ -1,5 +1,6 @@
-from aiogram.dispatcher.filters import Command
 import dbmanager
+import user
+from aiogram.dispatcher.filters import Command
 from aiogram.types import CallbackQuery
 from aiogram import types
 from aiogram.utils.callback_data import CallbackData
@@ -34,7 +35,7 @@ async def cmd_start(message: types.Message):
 
         for admin in admins:
             await bot.send_message(chat_id=admin[0],
-                                   text=f"Юзер @{username}({chat.first_name} {chat.last_name}) хочет вступить в коммитет.",
+                                   text=f"Юзер {user.chat_to_string(chat)} хочет вступить в коммитет.",
                                    reply_markup=markup)
     else:
         await add_user(message)
@@ -47,7 +48,7 @@ async def add_user(message):
         await bot.send_message(chat_id=chat.id, text=result)
         if message.chat.id != chat.id:
             await bot.send_message(chat_id=message.chat.id,
-                                   text=f"Статус заявки @{chat.username}({chat.first_name} {chat.last_name}) на вступление: " + result)
+                                   text=f"Статус заявки {user.chat_to_string(chat)} на вступление: " + result)
 
 
 @dp.callback_query_handler(admin_confirm_callback.filter(answer='no'))  # lambda c: c and c.data == 'no')

@@ -64,3 +64,16 @@ def delete_user(user_id):
     conn.commit()
     cursor.close()
     conn.close()
+
+
+def made_admin(user_id):
+    conn = db_connect()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"UPDATE users SET is_admin = true WHERE id ={user_id};")
+        return "Принят(-а) в администраторы комитета!"
+    except Exception as ex:
+        return ex
+    conn.commit()
+    cursor.close()
+    conn.close()
